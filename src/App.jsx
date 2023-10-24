@@ -1,40 +1,14 @@
 import { useState } from 'react'
 import './App.css'
-import { postUser, postProfile, getAmount, postUserBack } from './services/kuna'
+import { postUser, postProfile, getAmount } from './services/kuna'
 import Maps from './components/Maps'
 
 function App() {
   const [userId, setUserId] = useState('')
+  const [vtexID, setVtexId] = useState('')
   const [loan, setLoan] = useState(0)
-  const [location, setLocation] = useState(null)
-  // const [user, setUser] = {
-  //   names: [],
-  //   surnames: [],
-  //   document: {
-  //     type: "RFC",
-  //     value: ''
-  //   },
-  //   birthDate: '',
-  //   gender: '',
-  //   email: '',
-  //   phoneNumber: '',
-  //   socioeconomicData: {
-  //     incomeMonthlyAvg: {
-  //       amount: 0,
-  //       currency: "MXN"
-  //     },
-  //     economicDependents: 0 // min: 0, max: 10
-  //   },
-  //   addressData: {
-  //     country: "MX",
-  //     city: '',
-  //     state: '',
-  //     neighborhood: '',
-  //     street: '',
-  //     number: '', //numero exterior
-  //     zipCode: ''
-  //   }
-  // }
+  const [location, setLocation] = useState({})
+  const [status, setStatus] = useState(null)
 
   const getLocation = location => {
     setLocation(location)
@@ -43,38 +17,42 @@ function App() {
   const handleCreateUser = async (e) => {
     e.preventDefault()
 
-    console.log('location',location)
-    const fb = new FormData(e.target)
-    
+    console.log('location', `${import.meta.env.VITE_URI_BACKEND}`)
+    const fd = new FormData(e.target)
     try {
-      const response = await postUser(fb, location)
+      const response = await postUser(fd, location)
       const responseObj = await response.json()
-      if (!responseObj.success) throw new Error('No hay id')
-      setUserId(responseObj?.data.userId)
-      console.log('back_gera', responseObj)
+      console.log(responseObj)
+      if (!responseObj.success && !response.data.userId) throw new Error('No hay id')
+      setUserId(responseObj.data.userId)
     } catch (error) {
-      console.log('Error al crear usuario', error)
+      console.error('Error al crear usuario', error)
     }
   }
 
   const handleCreateProfile = async (event) => {
     event.preventDefault()
     const code = event.target.code.value
+    console.log('creando prefil con id:', userId, 'y', `${code}`)
     try {
       const response = await postProfile(code, userId)
       const responseObj = await response.json()
-      console.log(responseObj)
+      console.log(responseObj?.data)
+      if(!responseObj.success) throw new Error('No hay perfilado')
+      setStatus(responseObj?.data.profileResult)
     } catch (error) {
       console.error('Error al crear el perfil', error)
     }
   }
 
-  const handleLoan = async () => {
+  const handleLoan = async (e) => {
+    e.preventDefault()
     try {
-      const response = await getAmount()
-      const responsebj = response.json()
-      if (!responsebj.data.maxAmount) throw new Error('NO existe monto')
-      setLoan(responsebj.data.maxAmount)
+      const response = await getAmount(userId)
+      const responseObj = await response.json()
+      console.log(responseObj)
+      if (!responseObj.success) throw new Error('NO existe monto')
+      setLoan(responseObj.data.maxAmount)
     } catch (error) {
       console.log('Error al traer el monto', error)
     }
@@ -94,7 +72,7 @@ function App() {
             <input type="text" name="first_surname" placeholder="apellido paterno" />
             <input type="text" name="second_surname" placeholder="apellido materno" />
             <input type="date" name="birthdate" placeholder="fecha de nacimiento" />
-            <label><input type="radio" name="gender" value='man' checked />Maculino</label>
+            <label><input type="radio" name="gender" value='man' defaultChecked />Maculino</label>
             <label><input type="radio" name="gender" value='woman' /> Femenino</label>
             <input type="text" name='rfc' placeholder='RFC con homoclave' />
             <input type="email" name="email" placeholder='email' />
@@ -108,7 +86,6 @@ function App() {
             <input type="number" name='init_payment' placeholder='pago inicial' min={40000} />
             <input type="number" name='entry' placeholder='ingreso neto mensual' />
             <input type="number" name='dependents' min="0" max="10" placeholder='dependientes economicos' />
-            <input type="text" name="id_vtex" placeholder='ID Vtex' style={{margin: '5rem 0'}}/>
           </article>
         </div>
 
@@ -131,8 +108,11 @@ function App() {
         <button>Enviar</button>
       </form>
 
+      <input type="text" name="id_vtex" placeholder='ID Vtex' style={{margin: '5rem 0'}}/>
+
       <form className='userForm' onSubmit={handleCreateProfile}>
         <h2 className='title'>Perfilar usuario</h2>
+        <p style={{color: `${status === 'APPROVED' ? '#138636': '#C91439'}`}}>{status}</p>
         <input type="number" name='code' placeholder='codigo' />
         <button>Enviar</button>
       </form>

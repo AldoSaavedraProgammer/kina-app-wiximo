@@ -1,5 +1,6 @@
 export const postUser = async (fb, location) => {
-  // const url = new URL(`${import.meta.env.VITE_URI_BACKEND}/partners/api/v1/users`)
+  const url = new URL(`${import.meta.env.VITE_URL_BACKEND}/api/kuna/create_user`)
+  console.log('url', 'entro')
 
   const userObj = {
     names: [fb.get('name'), fb.get('mid_name')],
@@ -14,10 +15,10 @@ export const postUser = async (fb, location) => {
     phoneNumber: `+52${fb.get('phone')}`,
     socioeconomicData: {
       incomeMonthlyAvg: {
-        amount: fb.get('payment'),
+        amount: parseInt(fb.get('payment')),
         currency: "MXN"
       },
-      economicDependents: fb.get('dependents') // min: 0, max: 10
+      economicDependents: parseInt(fb.get('dependents')) // min: 0, max: 10
     },
     addressData: {
       country: "MX",
@@ -30,30 +31,33 @@ export const postUser = async (fb, location) => {
     }
   }
   console.log('userobj',userObj)
-  // var myHeaders = new Headers();
-  // myHeaders.append("x-kavak-token-type", "urn:kavak:token-type:apikey");
-  // myHeaders.append("Authorization", `${import.meta.env.VITE_API_KEY}`);
-  // myHeaders.append("Content-Type", "application/json");
+  var myHeaders = new Headers();
+  myHeaders.append("Api-Key", `${import.meta.env.VITE_API_KEY}`);
+  myHeaders.append("Content-Type", "application/json");
+  // myHeaders.append('Authorization', `Bearer ${import.meta.env.VITE_TOKEN}`)
 
-  // var requestOptions = {
-  //   method: 'POST',
-  //   headers: myHeaders,
-  //   body: JSON.stringify(userObj),
-  //   redirect: 'follow'
-  // };
+  var requestOptions = {
+    method: 'POST',
+    headers: myHeaders,
+    body: JSON.stringify(userObj),
 
-  // return fetch(url, {
-  //   requestOptions
-  // })
+  };
 
-  return {}
+  return fetch(url, {
+    method: 'POST',
+    headers: myHeaders,
+    body: JSON.stringify(userObj)
+  })
+
 }
 
 export const postProfile = async (code, id) => {
+  const url = new URL(`${import.meta.env.VITE_URL_BACKEND}/api/kuna/create_profile/${id}`)
+
   var myHeaders = new Headers();
-  myHeaders.append("x-kavak-token-type", "urn:kavak:token-type:apikey");
-  myHeaders.append("Authorization", `Bearer ${import.meta.env.VITE_API_KEY}`);
+  myHeaders.append("Api-Key", `${import.meta.env.VITE_API_KEY}`);
   myHeaders.append("Content-Type", "application/json");
+  // myHeaders.append('Authorization', `Bearer ${import.meta.env.VITE_TOKEN}`)
 
   var raw = JSON.stringify({
     "authorizationCode": `${code}`
@@ -66,20 +70,42 @@ export const postProfile = async (code, id) => {
     redirect: 'follow'
   };
 
-  return fetch(`${import.meta.env.VITE_URI_BACKEND}/partners/api/v1/users/${id}/profile`, requestOptions)
+  return fetch(url, {
+    method:'POST',
+    headers: myHeaders,
+    body: raw
+  })
 }
 
-export const getAmount = async () => {
+/*----- GET -----*/
+
+export const getAmount = async (id) => {
+  const url = new URL(`${import.meta.env.VITE_URL_BACKEND}/api/kuna/max-amount/${id}`)
   var myHeaders = new Headers();
-  myHeaders.append("x-kavak-token-type", "urn:kavak:token-type:apikey");
-  myHeaders.append("Authorization", `Bearer ${import.meta.env.VITE_API_KEY}`);
-  myHeaders.append("Content-Type", "application/json");
+    myHeaders.append("Api-Key", `${import.meta.env.VITE_API_KEY}`);
+    myHeaders.append("Content-Type", "application/json");
+    // myHeaders.append('Authorization', `Bearer ${import.meta.env.VITE_TOKEN}`)
 
   var requestOptions = {
-    method: 'GET',
     headers: myHeaders,
-    redirect: 'follow'
   };
 
-  return fetch(`${import.meta.env.VITE_BASE_URL}/partners/api/v1/users/:userId/max-amount`, requestOptions)
+  return fetch(url, requestOptions)
+}
+
+export const getUser = async (vtexId, userId) => {
+  const url = new URL(`${import.meta.env.VITE_BASE_URL}/api/kuna/get_user`)
+url.searchParams.set('vtexId', vtexId)
+url.searchParams.set('userId', userId)
+
+  var myHeaders = new Headers();
+    myHeaders.append("Api-Key", `${import.meta.env.VITE_API_KEY}`);
+    myHeaders.append("Content-Type", "application/json");
+    // myHeaders.append('Authorization', `Bearer ${import.meta.env.VITE_TOKEN}`)
+
+  var requestOptions = {
+    headers: myHeaders,
+  };
+
+  return fetch(url, requestOptions)
 }
