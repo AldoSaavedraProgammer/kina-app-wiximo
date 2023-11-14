@@ -4,7 +4,7 @@ import '../App.css'
 import { useState, useEffect, useMemo } from 'react'
 
 const Maps = ({ getLocation }) => {
-    const { isLoaded } = useLoadScript({
+    const { isLoaded, loadError } = useLoadScript({
         googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPAS_KEY
     })
     setDefaults({
@@ -60,6 +60,7 @@ const Maps = ({ getLocation }) => {
 
 
     if (!isLoaded) return <div>Cargando mapa...</div>
+     console.log('fallo el mapa', loadError)
 
     return (
         <GoogleMap

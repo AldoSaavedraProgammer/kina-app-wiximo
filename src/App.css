@@ -26,12 +26,12 @@ main{
   padding: 1rem 0;
 }
 
-input {
+input, select {
   display: block;
   margin: 10px 0;
 }
 
-input::placeholder {
+input::placeholder, select::placeholder {
   color: rgb(203, 203, 203);
   padding-left: 6px;
 }

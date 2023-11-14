@@ -5,7 +5,6 @@ import Maps from './components/Maps'
 
 function App() {
   const [userId, setUserId] = useState('')
-  const [vtexID, setVtexId] = useState('')
   const [loan, setLoan] = useState(0)
   const [location, setLocation] = useState({})
   const [status, setStatus] = useState(null)
@@ -38,8 +37,10 @@ function App() {
       const response = await postProfile(code, userId)
       const responseObj = await response.json()
       console.log(responseObj?.data)
-      if(!responseObj.success) throw new Error('No hay perfilado')
+      if (!responseObj.success ) throw new Error('No hay perfilado')
+      if (!responseObj.data.maxAmount ) throw new Error('No hay monto')
       setStatus(responseObj?.data.profileResult)
+    setLoan(responseObj?.data.maxAmount)
     } catch (error) {
       console.error('Error al crear el perfil', error)
     }
@@ -47,8 +48,9 @@ function App() {
 
   const handleLoan = async (e) => {
     e.preventDefault()
+    const vtexID = document.querySelector('#vtexId')
     try {
-      const response = await getAmount(userId)
+      const response = await getAmount(vtexID)
       const responseObj = await response.json()
       console.log(responseObj)
       if (!responseObj.success) throw new Error('NO existe monto')
@@ -58,7 +60,7 @@ function App() {
     }
   }
 
-  
+
 
   return (
     <main>
@@ -79,20 +81,31 @@ function App() {
             <input type="tel" name="phone" placeholder='telefono' />
           </article>
 
-
           <article className='data-financial'>
             <h4 className='title'>Datos financieros</h4>
             <input type="number" name='payment' placeholder='pago mensual' />
             <input type="number" name='init_payment' placeholder='pago inicial' min={40000} />
             <input type="number" name='entry' placeholder='ingreso neto mensual' />
             <input type="number" name='dependents' min="0" max="10" placeholder='dependientes economicos' />
+            <input type="number" name="down_payment" min='0' placeholder='anticipo' />
+            <select name='marital_status'  placeholder='estado civil'>
+              <option value="SINGLE">soltero</option>
+              <option value="MARRIED">casado</option>
+              <option value="DIVORCED">divorciado</option>
+              <option value="WIDOWED">viudo</option>
+            </select>
+            <select name="employment_status" placeholder='estado de empleo'>
+              <option value="STUDENT">estudiante</option>
+              <option value="WORKER">trabajador</option>
+            </select>
+            <input type="text" name="id_vtex" id='vtexId' placeholder='ID Vtex' />
           </article>
         </div>
 
         <article className='data-location'>
           <h4 className='title'>Ubicación</h4>
           <div className='location-maps'>
-            <Maps getLocation={getLocation}/>
+            <Maps getLocation={getLocation} />
             <div>
               <input type="text" name='street' placeholder='calle' />
               <input type="text" name='neighborhood' placeholder='barrio' />
@@ -101,25 +114,24 @@ function App() {
               <input type="text" name='cp' placeholder='codigo postal' />
               <input type="text" name='city' placeholder='municipio' />
               <input type="text" name='state' placeholder='estado' />
+              <input type="text" name='living_type' placeholder='estilo de vida' />
+              <input type="number" name='resident_years' min='1' placeholder='años de residencia' />
             </div>
           </div>
         </article>
 
         <button>Enviar</button>
       </form>
-
-      <input type="text" name="id_vtex" placeholder='ID Vtex' style={{margin: '5rem 0'}}/>
-
       <form className='userForm' onSubmit={handleCreateProfile}>
         <h2 className='title'>Perfilar usuario</h2>
-        <p style={{color: `${status === 'APPROVED' ? '#138636': '#C91439'}`}}>{status}</p>
+        <p style={{ color: `${status === 'APPROVED' ? '#138636' : '#C91439'}` }}>{status}</p>
         <input type="number" name='code' placeholder='codigo' />
         <button>Enviar</button>
       </form>
 
       <form className='userForm'>
         <h2 className='title'>solicitar credito</h2>
-        <p>{loan}</p>
+        <p>{loan.toLocaleString('es-MX', {currency: 'MXN', style: 'currency'})}</p>
         <button onClick={handleLoan}>Pedir prestamo</button>
       </form>
     </main>
