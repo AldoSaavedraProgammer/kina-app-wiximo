@@ -4,6 +4,6 @@
 18
 
 ## Comandos
- npm install
-**dev** : npm run dev
+ npm install </br>
+**dev** : npm run dev </br>
 **prod** np run build && npm run build
